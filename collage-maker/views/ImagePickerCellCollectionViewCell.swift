@@ -19,11 +19,7 @@ class ImagePickerCellCollectionViewCell: UICollectionViewCell {
     }()
         
     func configureCell(imageModel: ImagePickerModel) {
-        
-        imageModel.thumbnailImage { image in
-            self.imageView.image = image
-        }
-//        imageView.image = imageModel.thumbnailImage
+        imageView.image = imageModel.image
         viewforSelectedState(imageModel: imageModel)
     }
     

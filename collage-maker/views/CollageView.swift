@@ -16,7 +16,7 @@ class CollageView: UIView {
         let st = UIStackView()
         st.alignment = .fill
         st.axis = .vertical
-        st.distribution = .fillEqually
+        st.distribution = .fillProportionally
         st.translatesAutoresizingMaskIntoConstraints = false
         st.spacing = spacing
         return st
@@ -37,7 +37,6 @@ class CollageView: UIView {
     
     func setupViews() {
         addSubview(MainStackView)
-        MainStackView.spacing = spacing
     }
     
     func layoutViews() {
@@ -59,6 +58,7 @@ class CollageView: UIView {
             rowStack.distribution = .fillProportionally
             rowStack.axis = .horizontal
             rowStack.spacing = spacing
+            
             
             row.forEach {
                 let imageView = UIImageView(image: $0)

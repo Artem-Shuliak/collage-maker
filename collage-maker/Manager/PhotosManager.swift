@@ -24,7 +24,7 @@ class PhotosManager {
         PHPhotoLibrary.requestAuthorization { status in
             
             if status == .authorized {
-//                let manager = PHImageManager.default()
+                let manager = PHImageManager.default()
                 let fetchOptions = PHFetchOptions()
                 fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
                 let assets = PHAsset.fetchAssets(with: .image, options: fetchOptions)
@@ -35,36 +35,30 @@ class PhotosManager {
                 }
                 
                 assets.enumerateObjects { object, _, _ in
-//                    manager.requestImage(for: object, targetSize: PHImageManagerMaximumSize, contentMode: .aspectFit, options: nil) { image, _ in
-//
-//                        guard let image = image else { return }
-//                        self.imageArray.append(ImagePickerModel(image: image))
-//                        completion()
-//                    }
-                    let imageModel = ImagePickerModel(asset: object)
-                    self.imageArray.append(imageModel)
+                    manager.requestImage(for: object, targetSize: PHImageManagerMaximumSize, contentMode: .aspectFit, options: nil) { image, _ in
+                        
+                        guard let image = image else { return }
+                        self.imageArray.append(ImagePickerModel(image: image))
+                        completion()
+                    }
                 }
                 
             }
         }
     }
     
-    func selectImage(indexPath: IndexPath, completion: @escaping  () -> ()) {
+    func selectImage(indexPath: IndexPath, completion: () -> ()) {
         if selectedImages.count < 10 {
             
             imageArray[indexPath.row].isSelected.toggle()
             
-            imageArray[indexPath.row].fullImage { image in
-                print(image)
-                if self.imageArray[indexPath.row].isSelected {
-                    self.selectedImages.append(image)
-                    completion()
-                } else {
-                    self.selectedImages.removeAll { $0 == image }
-                    completion()
-                }
+            if imageArray[indexPath.row].isSelected {
+                selectedImages.append(imageArray[indexPath.row].image)
+                completion()
+            } else {
+                selectedImages.removeAll { $0 == imageArray[indexPath.row].image }
+                completion()
             }
-            
             
         }
     }

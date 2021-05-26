@@ -151,7 +151,7 @@ extension ImagePickerController {
     // Checks if an image has already been added to selectedImages Array and adds it
     func selectImage(indexPath: IndexPath) {
         photosManager.selectImage(indexPath: indexPath) {
-            self.collectionView.reloadItems(at: [indexPath])
+            collectionView.reloadItems(at: [indexPath])
         }
     }
     
