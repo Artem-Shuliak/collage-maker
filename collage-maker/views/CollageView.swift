@@ -53,30 +53,6 @@ class CollageView: UIView {
         
     }
     
-    //    func constructCollage(imageArray: [UIImage]) {
-    //        let chunckedImages = imageArray.chunked(into: 2)
-    //        chunckedImages.forEach { row in
-    //
-    //            let rowStack = UIStackView()
-    //            rowStack.alignment = .fill
-    //            rowStack.distribution = .fillProportionally
-    //            rowStack.axis = .horizontal
-    //            rowStack.spacing = spacing
-    //
-    //
-    //            row.forEach {
-    //                let imageView = UIImageView(image: $0)
-    //                imageView.contentMode = .scaleAspectFill
-    //                imageView.clipsToBounds = true
-    //                imageView.layer.cornerRadius = 4
-    //                rowStack.addArrangedSubview(imageView)
-    //            }
-    //
-    //            MainStackView.addArrangedSubview(rowStack)
-    //        }
-    //        layoutIfNeeded()
-    //        }
-    
     func constructCollage() {
         
         guard let numberOfItems = datasource?.numberOfItems() else { return }
@@ -106,12 +82,4 @@ class CollageView: UIView {
     }
     
 }
-
-//extension Array {
-//    func chunked(into size: Int) -> [[Element]] {
-//        return stride(from: 0, to: count, by: size).map {
-//            Array(self[$0 ..< Swift.min($0 + size, count)])
-//        }
-//    }
-//}
 
