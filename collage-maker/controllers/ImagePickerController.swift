@@ -9,7 +9,7 @@ import UIKit
 import Photos
 
 protocol ImagePickerDelegate: AnyObject {
-    func imagePickerButtonTapped(images: [UIImage])
+    func imagePickerButtonTapped(selectedImageModels: [ImagePickerModel])
 }
 
 class ImagePickerController: UIViewController {
@@ -91,6 +91,12 @@ class ImagePickerController: UIViewController {
         }
     }
     
+    // performs action when imagePicker Button is tapped
+    @objc func imagePickerButtonTapped() {
+        delegate?.imagePickerButtonTapped(selectedImageModels: photosManager.selectedImages)
+        dismiss(animated: true, completion: nil)
+    }
+    
 }
 
 // MARK: -  CollectionView DataSource/Delegate Methods
@@ -114,13 +120,6 @@ extension ImagePickerController: UICollectionViewDataSource, UICollectionViewDel
         selectImage(indexPath: indexPath)
         updateButton()
     }
-    
-    // performs action when imagePicker Button is tapped
-    @objc func imagePickerButtonTapped() {
-        delegate?.imagePickerButtonTapped(images: photosManager.selectedImages)
-        self.dismiss(animated: true, completion: nil)
-    }
-    
 }
 
 // MARK: -  CollectionView DelegateFlowLayout Methods

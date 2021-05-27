@@ -6,8 +6,10 @@
 //
 
 import UIKit
+import Photos
 
-struct ImagePickerModel {
-    let image: UIImage
+struct ImagePickerModel: Equatable {
+    let asset: PHAsset
+//    let image: UIImage
     var isSelected: Bool = false
 }

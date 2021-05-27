@@ -18,11 +18,6 @@ class ImagePickerCellCollectionViewCell: UICollectionViewCell {
         return iv
     }()
         
-    func configureCell(imageModel: ImagePickerModel) {
-        imageView.image = imageModel.image
-        viewforSelectedState(imageModel: imageModel)
-    }
-    
     override init(frame: CGRect) {
         super.init(frame: frame)
         configureItems()
@@ -46,6 +41,13 @@ class ImagePickerCellCollectionViewCell: UICollectionViewCell {
             imageView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
             imageView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: 0),
         ])
+    }
+    
+    func configureCell(imageModel: ImagePickerModel) {
+        DispatchQueue.main.async {
+            self.imageView.image = PhotosManager.shared.loadImage(asset: imageModel.asset, targetSize: CGSize(width: self.bounds.width, height: self.bounds.height))
+        }
+        viewforSelectedState(imageModel: imageModel)
     }
     
 }

@@ -13,18 +13,19 @@ class PhotosManager {
     static let shared = PhotosManager()
     private init() { }
     
-    var selectedImages = [UIImage]()
-    var imageArray = [ImagePickerModel]()
+    let manager = PHImageManager.default()
     
-    func loadPhotos(completion: @escaping () -> ()) {
+    var imageArray = [ImagePickerModel]()
+    var selectedImages = [ImagePickerModel]()
+    
+    func loadPhotos(completion: @escaping () -> Void) {
         
         imageArray.removeAll()
         selectedImages.removeAll()
         
-        PHPhotoLibrary.requestAuthorization { status in
+        PHPhotoLibrary.requestAuthorization { [weak self] status in
             
             if status == .authorized {
-                let manager = PHImageManager.default()
                 let fetchOptions = PHFetchOptions()
                 fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
                 let assets = PHAsset.fetchAssets(with: .image, options: fetchOptions)
@@ -35,34 +36,40 @@ class PhotosManager {
                 }
                 
                 assets.enumerateObjects { object, _, _ in
-                    manager.requestImage(for: object, targetSize: PHImageManagerMaximumSize, contentMode: .aspectFit, options: nil) { image, _ in
-                        
-                        guard let image = image else { return }
-                        self.imageArray.append(ImagePickerModel(image: image))
-                        completion()
-                    }
+                    self?.imageArray.append(ImagePickerModel(asset: object))
+                    completion()
                 }
-                
             }
         }
     }
     
-    func selectImage(indexPath: IndexPath, completion: () -> ()) {
+    func loadImage(asset: PHAsset, targetSize: CGSize = PHImageManagerMaximumSize) -> UIImage {
+        var thumbnail = UIImage()
+        manager.requestImage(for: asset, targetSize: targetSize, contentMode: .aspectFit, options: nil) { image, _ in
+            guard let image = image else { return }
+            thumbnail = image
+        }
+        
+        return thumbnail
+    }
+    
+    
+    func selectImage(indexPath: IndexPath, completion: () -> Void) {
         if selectedImages.count < 10 {
             
             imageArray[indexPath.row].isSelected.toggle()
-            
-            if imageArray[indexPath.row].isSelected {
-                selectedImages.append(imageArray[indexPath.row].image)
-                completion()
-            } else {
-                selectedImages.removeAll { $0 == imageArray[indexPath.row].image }
-                completion()
-            }
-            
+        
+                if self.imageArray[indexPath.row].isSelected {
+                    self.selectedImages.append(imageArray[indexPath.row])
+                    completion()
+                } else {
+                    completion()
+                    self.selectedImages.removeAll { $0 == imageArray[indexPath.row] }
+                }
         }
     }
 
 }
+
 
 

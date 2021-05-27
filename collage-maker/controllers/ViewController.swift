@@ -9,7 +9,7 @@ import UIKit
 
 class ViewController: UIViewController {
     
-    private var imageArray: [UIImage]? {
+    private var imageArray: [ImagePickerModel]? {
         didSet {
             imagesAreSelected()
         }
@@ -57,8 +57,8 @@ class ViewController: UIViewController {
 
 extension ViewController: ImagePickerDelegate {
     
-    func imagePickerButtonTapped(images: [UIImage]) {
-        self.imageArray = images
+    func imagePickerButtonTapped(selectedImageModels: [ImagePickerModel]) {
+        self.imageArray = selectedImageModels
     }
     
 }
@@ -75,8 +75,14 @@ extension ViewController {
         navigationController?.present(secondNavigationController, animated: true, completion: nil)
     }
     
+    func convertToImages() {
+        // do smth here
+    }
+    
     func imagesAreSelected() {
+        
         if imageArray == nil {
+            collageView?.removeFromSuperview()
             view.addSubview(emptyCollageLabel)
             
             NSLayoutConstraint.activate([
@@ -85,23 +91,42 @@ extension ViewController {
             ])
         } else {
             emptyCollageLabel.removeFromSuperview()
-            collageView?.removeFromSuperview()
             
-            guard let imageArray = imageArray else { return }
-            collageView = CollageView(imageArray: imageArray)
-            guard let collageView = collageView else { return }
-            
-            collageView.translatesAutoresizingMaskIntoConstraints = false
-            collageView.clipsToBounds = true
-            view.addSubview(collageView)
-            
-            NSLayoutConstraint.activate([
-                collageView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-                collageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
-                collageView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-                collageView.bottomAnchor.constraint(equalTo: collageButton.topAnchor, constant: -10),
-            ])
+            if let collageView = collageView {
+                collageView.constructCollage()
+            } else {
+                collageView = CollageView()
+                collageView?.datasource = self
+                guard let collageView = collageView else { return }
+                
+                collageView.translatesAutoresizingMaskIntoConstraints = false
+                collageView.clipsToBounds = true
+                view.addSubview(collageView)
+                
+                NSLayoutConstraint.activate([
+                    collageView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+                    collageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+                    collageView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+                    collageView.bottomAnchor.constraint(equalTo: collageButton.topAnchor, constant: -10),
+                ])
+                
+                collageView.constructCollage()
+            }
         }
+    }
+}
+
+extension ViewController: collageDatasource {
+    func numberOfItems() -> Int {
+        guard let imageArray = imageArray else { return 0 }
+        return imageArray.count
+    }
+    
+    func ImageforIndex(indexPath: Int) -> UIImage {
+        guard let imageArray = imageArray else { return UIImage() }
+        let imageObject = imageArray[indexPath]
+        let image = PhotosManager.shared.loadImage(asset: imageObject.asset, targetSize: CGSize(width: view.bounds.width, height: view.bounds.height))
+        return image
     }
 }
 

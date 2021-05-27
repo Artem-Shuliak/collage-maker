@@ -7,9 +7,16 @@
 
 import UIKit
 
-class CollageView: UIView {
 
-    var imageArray: [UIImage]
+protocol collageDatasource {
+    func numberOfItems() -> Int
+    func ImageforIndex(indexPath: Int) -> UIImage
+}
+
+class CollageView: UIView {
+    
+    var datasource: collageDatasource?
+    
     let spacing = CGFloat(10)
     
     lazy var MainStackView: UIStackView = {
@@ -22,13 +29,10 @@ class CollageView: UIView {
         return st
     }()
     
-    init(imageArray: [UIImage]) {
-        self.imageArray = imageArray
-        super.init(frame: .infinite)
+    override init(frame: CGRect) {
+        super.init(frame: frame)
         setupViews()
         layoutViews()
-        constructCollage()
-        
     }
     
     required init?(coder: NSCoder) {
@@ -46,39 +50,68 @@ class CollageView: UIView {
             MainStackView.trailingAnchor.constraint(equalTo: trailingAnchor),
             MainStackView.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
-
+        
     }
     
+    //    func constructCollage(imageArray: [UIImage]) {
+    //        let chunckedImages = imageArray.chunked(into: 2)
+    //        chunckedImages.forEach { row in
+    //
+    //            let rowStack = UIStackView()
+    //            rowStack.alignment = .fill
+    //            rowStack.distribution = .fillProportionally
+    //            rowStack.axis = .horizontal
+    //            rowStack.spacing = spacing
+    //
+    //
+    //            row.forEach {
+    //                let imageView = UIImageView(image: $0)
+    //                imageView.contentMode = .scaleAspectFill
+    //                imageView.clipsToBounds = true
+    //                imageView.layer.cornerRadius = 4
+    //                rowStack.addArrangedSubview(imageView)
+    //            }
+    //
+    //            MainStackView.addArrangedSubview(rowStack)
+    //        }
+    //        layoutIfNeeded()
+    //        }
+    
     func constructCollage() {
-        let chunckedImages = imageArray.chunked(into: 2)
-        chunckedImages.forEach { row in
         
+        guard let numberOfItems = datasource?.numberOfItems() else { return }
+        let itemsperRow = 2
+        
+        for row in stride(from: 0, to: numberOfItems, by: itemsperRow) {
+            
             let rowStack = UIStackView()
             rowStack.alignment = .fill
             rowStack.distribution = .fillProportionally
             rowStack.axis = .horizontal
             rowStack.spacing = spacing
             
-            
-            row.forEach {
-                let imageView = UIImageView(image: $0)
+            for item in row ..< min(row + itemsperRow, numberOfItems) {
+                
+                guard let image = datasource?.ImageforIndex(indexPath: item) else { return }
+                
+                let imageView = UIImageView(image: image)
                 imageView.contentMode = .scaleAspectFill
                 imageView.clipsToBounds = true
                 imageView.layer.cornerRadius = 4
                 rowStack.addArrangedSubview(imageView)
             }
-            
             MainStackView.addArrangedSubview(rowStack)
         }
         layoutIfNeeded()
-        }
     }
-
-extension Array {
-    func chunked(into size: Int) -> [[Element]] {
-        return stride(from: 0, to: count, by: size).map {
-            Array(self[$0 ..< Swift.min($0 + size, count)])
-        }
-    }
+    
 }
+
+//extension Array {
+//    func chunked(into size: Int) -> [[Element]] {
+//        return stride(from: 0, to: count, by: size).map {
+//            Array(self[$0 ..< Swift.min($0 + size, count)])
+//        }
+//    }
+//}
 
