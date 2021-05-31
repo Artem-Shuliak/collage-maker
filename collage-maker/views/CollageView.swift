@@ -8,18 +8,21 @@
 import UIKit
 
 
-protocol collageDatasource {
+protocol collageDatasource: AnyObject {
     func numberOfItems() -> Int
-    func ImageforIndex(indexPath: Int) -> UIImage
+    func ImageforIndex(indexPath: Int, completion: @escaping (UIImage) -> Void)
 }
 
 class CollageView: UIView {
     
-    var datasource: collageDatasource?
+    // collage View Datasource
+    weak var datasource: collageDatasource?
     
-    let spacing = CGFloat(10)
+    // spacing variable to configure collage
+    let spacing: CGFloat
     
-    lazy var MainStackView: UIStackView = {
+    // stackview holds images
+    private lazy var MainStackView: UIStackView = {
         let st = UIStackView()
         st.alignment = .fill
         st.axis = .vertical
@@ -29,8 +32,9 @@ class CollageView: UIView {
         return st
     }()
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    init(spacing: CGFloat = 10) {
+        self.spacing = spacing
+        super.init(frame: .infinite)
         setupViews()
         layoutViews()
     }
@@ -39,47 +43,63 @@ class CollageView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func setupViews() {
+    private func setupViews() {
         addSubview(MainStackView)
+        backgroundColor = .white
     }
     
-    func layoutViews() {
+    private func layoutViews() {
         NSLayoutConstraint.activate([
-            MainStackView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            MainStackView.topAnchor.constraint(equalTo: topAnchor),
-            MainStackView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            MainStackView.bottomAnchor.constraint(equalTo: bottomAnchor)
+            MainStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            MainStackView.topAnchor.constraint(equalTo: topAnchor, constant: 20),
+            MainStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            MainStackView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -20)
         ])
         
     }
     
+    // constructs collage view based on datasource images
     func constructCollage() {
         
+        MainStackView.removeAll()
         guard let numberOfItems = datasource?.numberOfItems() else { return }
         let itemsperRow = 2
         
-        for row in stride(from: 0, to: numberOfItems, by: itemsperRow) {
-            
-            let rowStack = UIStackView()
-            rowStack.alignment = .fill
-            rowStack.distribution = .fillProportionally
-            rowStack.axis = .horizontal
-            rowStack.spacing = spacing
-            
-            for item in row ..< min(row + itemsperRow, numberOfItems) {
+        DispatchQueue.main.async {
+            for row in stride(from: 0, to: numberOfItems, by: itemsperRow) {
                 
-                guard let image = datasource?.ImageforIndex(indexPath: item) else { return }
+                let rowStack = UIStackView()
+                rowStack.alignment = .fill
+                rowStack.distribution = .fillProportionally
+                rowStack.axis = .horizontal
+                rowStack.spacing = self.spacing
                 
-                let imageView = UIImageView(image: image)
-                imageView.contentMode = .scaleAspectFill
-                imageView.clipsToBounds = true
-                imageView.layer.cornerRadius = 4
-                rowStack.addArrangedSubview(imageView)
+                for item in row ..< min(row + itemsperRow, numberOfItems) {
+                    
+                    let imageView = UIImageView()
+                    imageView.contentMode = .scaleAspectFill
+                    imageView.clipsToBounds = true
+                    imageView.layer.cornerRadius = 4
+                    rowStack.addArrangedSubview(imageView)
+                    
+                    self.datasource?.ImageforIndex(indexPath: item, completion: { image in
+                        DispatchQueue.main.async {
+                            imageView.image = image
+                        }
+                    })
+                    
+                }
+                self.MainStackView.addArrangedSubview(rowStack)
             }
-            MainStackView.addArrangedSubview(rowStack)
         }
-        layoutIfNeeded()
     }
     
 }
 
+extension UIStackView {
+    func removeAll() {
+        for subview in self.arrangedSubviews {
+            subview.removeFromSuperview()
+        }
+    }
+}

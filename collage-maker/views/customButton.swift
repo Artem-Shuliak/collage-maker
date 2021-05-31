@@ -12,6 +12,7 @@ class customButton: UIButton {
     override open var isHighlighted: Bool {
         didSet {
             backgroundColor = isHighlighted ?.darkGray : .gray
+            alpha = isHighlighted ? 1 : 0.9
         }
     }
 
@@ -25,8 +26,7 @@ class customButton: UIButton {
     }
     
     func isButtonActive(isActive: Bool) {
-        alpha = isActive ? 1 : 0.7
+        backgroundColor = isActive ? .systemGreen : .gray
         isUserInteractionEnabled = isActive ? true : false
-        layoutIfNeeded()
     }
 }

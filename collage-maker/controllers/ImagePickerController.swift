@@ -8,6 +8,8 @@
 import UIKit
 import Photos
 
+// MARK: -  Image Picker Delegate Protocols
+
 protocol ImagePickerDelegate: AnyObject {
     func imagePickerButtonTapped(selectedImageModels: [ImagePickerModel])
 }
@@ -17,11 +19,16 @@ class ImagePickerController: UIViewController {
     // PhotosManager
     let photosManager = PhotosManager.shared
     //data passing delegate
-    var delegate: ImagePickerDelegate?
+    weak var delegate: ImagePickerDelegate?
     
-    let sectionInsets = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+    // config variables for spacing between cells and cell width
+    private let spacingBetweenImages = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+    private let cellBorderWidth: CGFloat = 3
+
     
-    let collectionView: UICollectionView = {
+    // MARK: - View Elements
+    
+    private let collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
         let cv = UICollectionView(frame: .infinite, collectionViewLayout: layout)
@@ -30,7 +37,7 @@ class ImagePickerController: UIViewController {
         return cv
     }()
     
-    let collageButton: customButton = {
+    private let collageButton: customButton = {
         let button = customButton()
         button.setTitle("Create Collage", for: .normal)
         button.addTarget(self, action: #selector(imagePickerButtonTapped) , for: .touchUpInside)
@@ -43,13 +50,19 @@ class ImagePickerController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        configureItems()
         configureNavBar()
+        configureItems()
         layoutItems()
         populateWidthPhotos()
     }
     
-    func configureItems() {
+    private func configureNavBar() {
+        title = "Select Images"
+        let cancelButton = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(dismissViewController))
+        navigationItem.rightBarButtonItem = cancelButton
+    }
+    
+    private func configureItems() {
         view.backgroundColor = .white
         view.addSubview(collageButton)
         view.addSubview(collectionView)
@@ -59,13 +72,7 @@ class ImagePickerController: UIViewController {
         collectionView.dataSource = self
     }
     
-    func configureNavBar() {
-        title = "Select Images"
-        let cancelButton = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(dismissViewController))
-        navigationItem.rightBarButtonItem = cancelButton
-    }
-    
-    func layoutItems() {
+    private func layoutItems() {
         // layout button
         NSLayoutConstraint.activate([
             collageButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
@@ -83,24 +90,24 @@ class ImagePickerController: UIViewController {
         ])
     }
     
-    func populateWidthPhotos() {
-        photosManager.loadPhotos {
+    private func populateWidthPhotos() {
+        photosManager.loadPhotos { [weak self] in
             DispatchQueue.main.async {
-                self.collectionView.reloadData()
+                self?.collectionView.reloadData()
             }
         }
     }
     
     // performs action when imagePicker Button is tapped
     @objc func imagePickerButtonTapped() {
-        delegate?.imagePickerButtonTapped(selectedImageModels: photosManager.selectedImages)
-        dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: {
+            self.delegate?.imagePickerButtonTapped(selectedImageModels: self.photosManager.selectedImages)
+        })
     }
     
 }
 
 // MARK: -  CollectionView DataSource/Delegate Methods
-
 
 extension ImagePickerController: UICollectionViewDataSource, UICollectionViewDelegate{
     
@@ -112,7 +119,7 @@ extension ImagePickerController: UICollectionViewDataSource, UICollectionViewDel
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ImagePickerCellCollectionViewCell.reuseIdentifier, for: indexPath) as! ImagePickerCellCollectionViewCell
         
         let imageModel = photosManager.imageArray[indexPath.row]
-        cell.configureCell(imageModel: imageModel)
+        cell.configureCell(imageModel: imageModel, cellBorderWidth: cellBorderWidth)
         return cell
     }
     
@@ -129,14 +136,14 @@ extension ImagePickerController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         
         let itemsPerRow = 3
-        let paddingSpace = sectionInsets.left * CGFloat(itemsPerRow + 1)
+        let paddingSpace = spacingBetweenImages.left * CGFloat(itemsPerRow + 1)
         let availableWidth = view.frame.width - paddingSpace
         let widthPerItem = availableWidth / CGFloat(itemsPerRow)
         
         return CGSize(width: widthPerItem , height: widthPerItem)
     }
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets { return sectionInsets }
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets { return spacingBetweenImages }
 }
 
 // MARK: -  ImagePickerController Additional Methods
@@ -148,13 +155,13 @@ extension ImagePickerController {
      }
     
     // Checks if an image has already been added to selectedImages Array and adds it
-    func selectImage(indexPath: IndexPath) {
+    private func selectImage(indexPath: IndexPath) {
         photosManager.selectImage(indexPath: indexPath) {
             collectionView.reloadItems(at: [indexPath])
         }
     }
     
-    func updateButton() {
+    private func updateButton() {
         if photosManager.selectedImages.count > 1 {
             collageButton.isButtonActive(isActive: true)
             collageButton.setTitle("Create Collage width \(photosManager.selectedImages.count) Photos", for: .normal)

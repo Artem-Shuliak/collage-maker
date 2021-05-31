@@ -10,6 +10,10 @@ import Photos
 
 struct ImagePickerModel: Equatable {
     let asset: PHAsset
-//    let image: UIImage
     var isSelected: Bool = false
+    
+    static func == (lhs: ImagePickerModel, rhs: ImagePickerModel) -> Bool {
+        return lhs.asset == rhs.asset
+    }
+    
 }

@@ -11,6 +11,8 @@ class ImagePickerCellCollectionViewCell: UICollectionViewCell {
     
     static let reuseIdentifier = "ImagePickerCellCollectionViewCell"
     
+    var cellBorderWidth: CGFloat = 3
+    
     let imageView: UIImageView = {
         let iv = UIImageView()
         iv.translatesAutoresizingMaskIntoConstraints = false
@@ -43,9 +45,12 @@ class ImagePickerCellCollectionViewCell: UICollectionViewCell {
         ])
     }
     
-    func configureCell(imageModel: ImagePickerModel) {
-        DispatchQueue.main.async {
-            self.imageView.image = PhotosManager.shared.loadImage(asset: imageModel.asset, targetSize: CGSize(width: self.bounds.width, height: self.bounds.height))
+    func configureCell(imageModel: ImagePickerModel, cellBorderWidth: CGFloat) {
+        self.cellBorderWidth = cellBorderWidth
+        PhotosManager.shared.loadImage(asset: imageModel.asset, targetSize: CGSize(width: self.bounds.width, height: self.bounds.height), isSynchonous: false) { image in
+            DispatchQueue.main.async {
+                self.imageView.image = image
+            }
         }
         viewforSelectedState(imageModel: imageModel)
     }
@@ -56,7 +61,7 @@ extension ImagePickerCellCollectionViewCell {
     
     func viewforSelectedState(imageModel: ImagePickerModel) {
         if imageModel.isSelected == true {
-            layer.borderWidth = 3
+            layer.borderWidth = cellBorderWidth
             layer.borderColor = UIColor.blue.cgColor
             layoutIfNeeded()
         } else {

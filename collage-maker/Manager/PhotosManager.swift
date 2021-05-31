@@ -11,7 +11,7 @@ import Photos
 class PhotosManager {
     
     static let shared = PhotosManager()
-    private init() { }
+    private init() {}
     
     let manager = PHImageManager.default()
     
@@ -36,35 +36,41 @@ class PhotosManager {
                 }
                 
                 assets.enumerateObjects { object, _, _ in
-                    self?.imageArray.append(ImagePickerModel(asset: object))
+                    guard let imageArray = self?.imageArray else { return }
+                    if imageArray.count < 2000 {
+                        self?.imageArray.append(ImagePickerModel(asset: object))
+                    }
                     completion()
                 }
             }
         }
     }
     
-    func loadImage(asset: PHAsset, targetSize: CGSize = PHImageManagerMaximumSize) -> UIImage {
-        var thumbnail = UIImage()
-        manager.requestImage(for: asset, targetSize: targetSize, contentMode: .aspectFit, options: nil) { image, _ in
-            guard let image = image else { return }
-            thumbnail = image
-        }
-        
-        return thumbnail
-    }
     
+    func loadImage(asset: PHAsset, targetSize: CGSize = PHImageManagerMaximumSize, isSynchonous: Bool, completion: @escaping (UIImage) -> Void) {
+        
+        let options = PHImageRequestOptions()
+        options.isSynchronous = isSynchonous ? true : false
+        
+        manager.requestImage(for: asset, targetSize: targetSize, contentMode: .aspectFit, options: options) { image, _ in
+            guard let image = image else { return }
+            completion(image)
+        }
+    }
+
     
     func selectImage(indexPath: IndexPath, completion: () -> Void) {
+        
         if selectedImages.count < 10 {
             
             imageArray[indexPath.row].isSelected.toggle()
         
-                if self.imageArray[indexPath.row].isSelected {
-                    self.selectedImages.append(imageArray[indexPath.row])
+                if imageArray[indexPath.row].isSelected {
+                   selectedImages.append(imageArray[indexPath.row])
                     completion()
                 } else {
+                   selectedImages.removeAll { $0 == imageArray[indexPath.row] }
                     completion()
-                    self.selectedImages.removeAll { $0 == imageArray[indexPath.row] }
                 }
         }
     }
