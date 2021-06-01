@@ -55,17 +55,22 @@ class CollageView: UIView {
             MainStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
             MainStackView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -20)
         ])
-        
     }
     
     // constructs collage view based on datasource images
-    func constructCollage() {
+    func constructCollage(completion: @escaping () -> Void) {
         
         MainStackView.removeAll()
-        guard let numberOfItems = datasource?.numberOfItems() else { return }
-        let itemsperRow = 2
         
+        // construct collage asynchronously in order to wait for the image conversion from the background thread
         DispatchQueue.main.async {
+            
+            // number of images in the collage
+            guard let numberOfItems = self.datasource?.numberOfItems() else { return }
+            
+            // images per row
+            let itemsperRow = 2
+            
             for row in stride(from: 0, to: numberOfItems, by: itemsperRow) {
                 
                 let rowStack = UIStackView()
@@ -82,6 +87,8 @@ class CollageView: UIView {
                     imageView.layer.cornerRadius = 4
                     rowStack.addArrangedSubview(imageView)
                     
+                    
+                    // request image for a specified index
                     self.datasource?.ImageforIndex(indexPath: item, completion: { image in
                         DispatchQueue.main.async {
                             imageView.image = image
@@ -89,8 +96,12 @@ class CollageView: UIView {
                     })
                     
                 }
+                
                 self.MainStackView.addArrangedSubview(rowStack)
             }
+            
+            // communicate that the task has finished
+            completion()
         }
     }
     

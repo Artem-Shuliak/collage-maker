@@ -57,7 +57,6 @@ class ViewController: UIViewController {
         let indicator = UIActivityIndicatorView(style: .large)
         indicator.translatesAutoresizingMaskIntoConstraints = false
         indicator.hidesWhenStopped = true
-        indicator.isHidden = true
         return indicator
     }()
     
@@ -173,32 +172,42 @@ extension ViewController {
             
         } else {
             emptyCollageLabel.removeFromSuperview()
-            activityIndicator.isHidden = false
+            activityIndicator.startAnimating()
             
+            // checking if the user has previously instantiated collage, to reduce unecessary initialization.
             if let collageView = collageView {
-                collageView.constructCollage()
+                collageView.constructCollage() { [weak self] in
+                    self?.activityIndicator.stopAnimating()
+                }
+                
             } else {
-                collageView = CollageView()
+                setupCollageView()
                 guard let collageView = collageView else { return }
-                collageView.datasource = self
-                
-                collageView.translatesAutoresizingMaskIntoConstraints = false
-                collageView.clipsToBounds = true
-                view.addSubview(collageView)
-                
-                NSLayoutConstraint.activate([
-                    collageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-                    collageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-                    collageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-                    collageView.bottomAnchor.constraint(equalTo: collageButton.topAnchor),
-                ])
-                
-                collageView.constructCollage()
+                collageView.constructCollage() { [weak self] in
+                    self?.activityIndicator.stopAnimating()
+                }
             }
             
             // show share button
             shareButton.isHidden = false
         }
+    }
+    
+    private func setupCollageView() {
+        collageView = CollageView()
+        guard let collageView = collageView else { return }
+        collageView.datasource = self
+        
+        collageView.translatesAutoresizingMaskIntoConstraints = false
+        collageView.clipsToBounds = true
+        view.insertSubview(collageView, belowSubview: activityIndicator)
+        
+        NSLayoutConstraint.activate([
+            collageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            collageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            collageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            collageView.bottomAnchor.constraint(equalTo: collageButton.topAnchor),
+        ])
     }
 
 }
