@@ -51,6 +51,7 @@ class PhotosManager {
         
         let options = PHImageRequestOptions()
         options.isSynchronous = isSynchonous ? true : false
+        options.deliveryMode = .highQualityFormat
         
         manager.requestImage(for: asset, targetSize: targetSize, contentMode: .aspectFit, options: options) { image, _ in
             guard let image = image else { return }

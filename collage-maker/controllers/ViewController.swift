@@ -125,7 +125,7 @@ extension ViewController: collageDatasource {
     func ImageforIndex(indexPath: Int, completion: @escaping (UIImage) -> Void) {
         guard let imageArray = imageArray else { return }
         let imageObject = imageArray[indexPath]
-        PhotosManager.shared.loadImage(asset: imageObject.asset, targetSize: CGSize(width: view.bounds.width, height: view.bounds.height), isSynchonous: true) { image in
+        PhotosManager.shared.loadImage(asset: imageObject.asset, targetSize: CGSize(width: view.bounds.width, height: view.bounds.height), isSynchonous: false) { image in
             completion(image)
         }
     }
@@ -158,8 +158,7 @@ extension ViewController {
     }
             
     private func imagesAreSelected() {
-        
-        
+
         // show message that no images has been selected
         if imageArray == nil {
             collageView?.removeFromSuperview()
@@ -187,7 +186,7 @@ extension ViewController {
                     self?.activityIndicator.stopAnimating()
                 }
             }
-            
+        
             // show share button
             shareButton.isHidden = false
         }

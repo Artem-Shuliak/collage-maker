@@ -1,7 +1,6 @@
 //
 //  CollageView.swift
 //  collage-maker
-//
 //  Created by Artem Chouliak on 5/26/21.
 //
 
@@ -32,6 +31,8 @@ class CollageView: UIView {
         return st
     }()
     
+    // MARK: - Lifecycle
+    
     init(spacing: CGFloat = 10) {
         self.spacing = spacing
         super.init(frame: .infinite)
@@ -56,51 +57,58 @@ class CollageView: UIView {
             MainStackView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -20)
         ])
     }
+
+    // MARK: - Collage Construction Functions
     
     // constructs collage view based on datasource images
     func constructCollage(completion: @escaping () -> Void) {
         
+        let dispatchGroup = DispatchGroup()
         MainStackView.removeAll()
         
-        // construct collage asynchronously in order to wait for the image conversion from the background thread
-        DispatchQueue.main.async {
+        // number of images in the collage
+        guard let numberOfItems = self.datasource?.numberOfItems() else { return }
+        
+        // images per row
+        let itemsperRow = 2
+        // array which holds collage Rows
+        var rowStackViews = [UIStackView]()
+        
+        for row in stride(from: 0, to: numberOfItems, by: itemsperRow) {
             
-            // number of images in the collage
-            guard let numberOfItems = self.datasource?.numberOfItems() else { return }
+            // create stackview for each row
+            let rowStack = UIStackView()
+            rowStack.alignment = .fill
+            rowStack.distribution = .fillProportionally
+            rowStack.axis = .horizontal
+            rowStack.spacing = spacing
             
-            // images per row
-            let itemsperRow = 2
-            
-            for row in stride(from: 0, to: numberOfItems, by: itemsperRow) {
+            for item in row ..< min(row + itemsperRow, numberOfItems) {
                 
-                let rowStack = UIStackView()
-                rowStack.alignment = .fill
-                rowStack.distribution = .fillProportionally
-                rowStack.axis = .horizontal
-                rowStack.spacing = self.spacing
+                // create image inside a row
+                let imageView = UIImageView()
+                imageView.contentMode = .scaleAspectFill
+                imageView.clipsToBounds = true
+                imageView.layer.cornerRadius = 4
                 
-                for item in row ..< min(row + itemsperRow, numberOfItems) {
-                    
-                    let imageView = UIImageView()
-                    imageView.contentMode = .scaleAspectFill
-                    imageView.clipsToBounds = true
-                    imageView.layer.cornerRadius = 4
-                    rowStack.addArrangedSubview(imageView)
-                    
-                    
-                    // request image for a specified index
-                    self.datasource?.ImageforIndex(indexPath: item, completion: { image in
-                        DispatchQueue.main.async {
-                            imageView.image = image
-                        }
-                    })
-                    
+                // add image to the row's StackView
+                rowStack.addArrangedSubview(imageView)
+                
+                // request image for a specified index
+                // using DispatchGroup to Queue all of the asynchonous image fetching before presenting collage
+                dispatchGroup.enter()
+                datasource?.ImageforIndex(indexPath: item) { image in
+                    defer { dispatchGroup.leave() }
+                    DispatchQueue.main.async { imageView.image = image }
                 }
                 
-                self.MainStackView.addArrangedSubview(rowStack)
             }
-            
-            // communicate that the task has finished
+            rowStackViews.append(rowStack)
+        }
+        
+        // append all of the rows to the main StackView when all of the images are fecthed.
+        dispatchGroup.notify(queue: .main) { [weak self] in
+            rowStackViews.forEach { self?.MainStackView.addArrangedSubview($0)}
             completion()
         }
     }
