@@ -12,8 +12,7 @@ extension UIView {
     func convertToImage(comletion: @escaping (UIImage) -> Void){
         let renderer = UIGraphicsImageRenderer(bounds: bounds)
         
-        DispatchQueue.global(qos: .default).async {
-           
+        DispatchQueue.global(qos: .userInitiated).async {
             let image = renderer.image { rendererContext in
                 DispatchQueue.main.sync {
                     self.layer.render(in: rendererContext.cgContext)
