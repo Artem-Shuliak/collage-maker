@@ -46,7 +46,7 @@ class CollageView: UIView {
     
     private func setupViews() {
         addSubview(MainStackView)
-        backgroundColor = .white
+        backgroundColor = .systemBackground
     }
     
     private func layoutViews() {

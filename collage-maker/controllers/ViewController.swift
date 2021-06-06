@@ -78,7 +78,7 @@ class ViewController: UIViewController {
     private func configureItems() {
         view.addSubview(buttonsStack)
         view.addSubview(activityIndicator)
-        view.backgroundColor = .white
+        view.backgroundColor = .systemBackground
         imagesAreSelected()
         
     }

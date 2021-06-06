@@ -33,7 +33,7 @@ class ImagePickerController: UIViewController {
         layout.scrollDirection = .vertical
         let cv = UICollectionView(frame: .infinite, collectionViewLayout: layout)
         cv.translatesAutoresizingMaskIntoConstraints = false
-        cv.backgroundColor = .white
+        cv.backgroundColor = .systemBackground
         return cv
     }()
     
@@ -63,7 +63,7 @@ class ImagePickerController: UIViewController {
     }
     
     private func configureItems() {
-        view.backgroundColor = .white
+        view.backgroundColor = .systemBackground
         view.addSubview(collageButton)
         view.addSubview(collectionView)
         
